@@ -16,60 +16,59 @@ const templateBTNConferma = `
 `;
 
 const tbodyTodoTemplate =
-    "<tr><td class='td %TESTOCOLOR'>%TITOLO</td><td>%CONFERMABTN</td><td>%ELIMINABTN</td></tr>";
+  "<tr><td class='td %TESTOCOLOR'>%TITOLO</td><td>%CONFERMABTN</td><td>%ELIMINABTN</td></tr>";
 
 /**
  * Funzione per visualizzare in tabella le todo
  * @param {*} array contiene le todo
  * @param {*} container contenitore della tabella generata dinamicamente
  */
-export const render = (
-    array,
-    container
-) => {
-    let html = "";
-    let count = 0;
-    if (array != undefined) {
-        array.forEach((element) => {
-            let row = tbodyTodoTemplate;
-            row = row
-                .replace("%TITOLO", element.title)
-                .replace("%CONFERMABTN", templateBTNConferma.replace("%ID", count))
-                .replace("%ELIMINABTN", templateBTNElimina.replace("%ID", count));
-            if (element.completed) {
-                row = row.replace("%TESTOCOLOR", "text-success");
-            } else {
-                row = row.replace("%TESTOCOLOR", "text-black");
-            }
-            html += row;
-            count++;
+export const render = (array, container) => {
+  let html = "";
+  if (array != undefined) {
+    array.forEach((element) => {
+      let row = tbodyTodoTemplate;
+      row = row
+        .replace("%TITOLO", element.name)
+        .replace("%CONFERMABTN", templateBTNConferma.replace("%ID", element.id))
+        .replace("%ELIMINABTN", templateBTNElimina.replace("%ID", element.id));
+      if (element.completed) {
+        row = row.replace("%TESTOCOLOR", "text-success");
+      } else {
+        row = row.replace("%TESTOCOLOR", "text-black");
+      }
+      html += row;
+    });
+    //inserimento dell'html
+    container.innerHTML = html;
+    //gestione button completato
+    document.querySelectorAll(".btn-success").forEach((button) => {
+      if (button.id != "aggiungiButton") {
+        button.onclick = () => {
+          const index = button.id.split("_")[1];
+          let todoToModify = undefined;
+          array.map((element) => {
+            if (element.id == index) todoToModify = element;
+          });
+          if (todoToModify) {
+            completa(todoToModify).then((response) => {
+              recupera().then((response) => {
+                render(response, container);
+              });
+            });
+          }
+        };
+      }
+    });
+    document.querySelectorAll(".btn-danger").forEach((button) => {
+      button.onclick = () => {
+        const index = button.id.split("_")[1];
+        elimina(index).then((response) => {
+          recupera().then((response) => {
+            render(response, container);
+          });
         });
-        //inserimento dell'html
-        container.innerHTML = html;
-        //gestione button completato
-        document.querySelectorAll(".btn-success").forEach(button => {
-            if (button.id != "aggiungiButton") {
-                button.onclick = () => {
-                    const index = button.id.split("_")[1];
-                    completa(array[index]).then(response=> {
-                        recupera().then(response => {
-                            render(response, container)
-                        });
-                    });
-                }
-            }
-        });
-        document.querySelectorAll(".btn-danger").forEach(button => {
-            button.onclick = () => {
-                const index = button.id.split("_")[1];
-                elimina(array[index].id)
-                    .then(response => {
-                        recupera().then(response => {
-                            render(response, container)
-                        });
-                    })
-            }
-        });
-    }
-
-}
+      };
+    });
+  }
+};

@@ -7,7 +7,7 @@ const tbodyTODO = document.getElementById("contenutoTableTodo");
 //variabili e template
 const todoTemplate = (title) => {
   return {
-    title: title,
+    name: title,
     completed: false,
   };
 };
